@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!-- Copyright [2012] Adobe Systems Incorporated.  All rights reserved -->
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="user-scalable=no, width=device-width" />
+		<title>Number Generator</title>
+<script>
+//-------JWT----------
+ var anchors;
+        var jsonObj = null; //used to store the JSON structure
+        var jsonTracker = "current"; //defualt value is current classes, which means that you will be retrieving the category JSON structure
+        var gstrCommand = "";  //defualt value is current (current classes) //is used to tell web service what info is being requested
+        var gstrValue = "";  //used as a generic variable to contain any value
+        var gstrOrgId = ""; //used to hold the OrgId to send to the web service
+        var gstrSearchType = ""; //used as a variable to store a the type of search
+        var gstrIE7 = false;
+        var gintRand = 0;
+        var gAlreadySavedAndClosed = false;  //used so the onBeforeUnload will not trigger the saving event again
+        //
+        var gstrRandList = ""; //"3962274559809719278453214237"; 
+        var gintNumPosition = 0;
+        var gintNumGened = 1;
+        //
+    
+        function fLoadData() {
+            var strAddress = "";
+            //var strItemName = "";
+            //var strItemValue = "";
+            gstrIE7 = fBrowserVersion();
+            if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+                xmlhttp = new XMLHttpRequest();
+            }
+            else { // code for IE6, IE5
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            //Async with data request and reterive data:
+            xmlhttp.onreadystatechange = function () {
+                //alert(xmlhttp.readyState +"--"+ xmlhttp.status);
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    //JS function JSON.parse to parse JSON Data
+                    if (gstrIE7 == true) { jsonObj = eval('(' + xmlhttp.responseText + ')'); }
+                    else { jsonObj = JSON.parse(xmlhttp.responseText); } //JSON.parse(xmlhttp.responseText); //objNewTest;
+                    //strItemName = objNewTest.ClassInfo[0].cate; //jsonObj.ClassInfo[0].caseN + jsonObj.ClassInfo[1].caseN;
+                    //strItemValue = jsonObj.ClassInfo[0].classI[0].cStart;
+                    //objDropDown = document.getElementById('jwtTest');
+                    //objDropDown.innerHTML = "none--" + strItemName + "--" + strItemValue;
+                    fLoadDataSwitch();
+                }
+                jsonObj = {"RandInfo":[{"list":"736495070785735141273649854638363424242","listType":"fake","userType":"general"}]}; //testing only
+                fLoadDataSwitch(); //testing only 
+            }
+            //{"ScormInfo":[ {"status":"scored","scored":"True","userPts":"False"}]}
+            var d = new Date();
+            var n = d.getSeconds();
+            n = n + Math.floor((Math.random() * 900) + 1) + 100;
+            gintRand = n;
+            strAddress = "https://www.randomjt.com/webServices/randomService.php?tCom=" + gstrCommand + "&txtOrgId=" + gstrOrgId + "&tRand=" + n; //gstrCommand gstrSearchType gstrSearchValue
+            //          //scormwebservice.aspx?tCom=CheckCompletion&txtOrgId=21"
+            //alert("address "+ strAddress );
+            xmlhttp.open("GET", strAddress, true);
+            xmlhttp.send();
+            //
+            var objNewData = null;
+            objNewData = document.getElementById('divNumberContent');
+            objNewData.innerHTML = "Loading ...";
+            objNewData = null;
+            //
+            //testing only //delete this line when done testing offline
+            //jsonObj = {"RandInfo":[{"list":"736495070785735141273649854638363424242","listType":"fake","userType":"general"}]}; 
+            //testing only //delete this line when done testing offline
+            fLoadDataSwitch();
+        }
+    
+
+
+        function fCheckForSVG() {
+            var e = document.createElement('div');
+            e.innerHTML = '<svg></svg>';
+            return !!(window.SVGSVGElement && e.firstChild instanceof window.SVGSVGElement);
+        }
+
+        //jwt - to get browser info type and version
+        function fBrowserVersion() {
+            var strTemp;
+            var arrData = new Array();
+            var arrDataCount;
+            var strFoundBrowserVersion;
+            var strVersion;
+            var strAllBrowserData = navigator.userAgent;
+            var blnOldVersion = false;
+            strVersion = navigator.appVersion;
+            gstrBrowserType = navigator.appName;
+            //detect if IE 7 or lowwer
+            if (strAllBrowserData.indexOf("MSIE") != -1) {
+                // Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; GTB6.3; .NET CLR 2.0.50727; InfoPath.1; .NET CLR 1.1.4322)
+                arrData = strAllBrowserData.split(' ');
+                arrDataCount = arrData.length;
+                strTemp = arrData[3];  //4th array set
+                strFoundBrowserVersion = strTemp;
+            }
+            if (parseInt(strFoundBrowserVersion) <= 7) { blnOldVersion = true; }
+            //
+            var objTemp = null;
+            //use try statement to protect other browsers from IE only commands
+            try {
+                objTemp = new ActiveXObject("Microsoft.XMLHTTP"); //old IE activeX //should find another one that only IE7+ will support
+            } catch (err) {
+                objTemp = false; //document.getElementById("demo").innerHTML = err.message;
+            }
+            if (objTemp) {
+                //IE only (usually IE 5-6) //But IE 11 and lowwer will still support this object for backwards compatibility
+                strFoundBrowserVersion = "1";
+                blnOldVersion = true;
+            }
+            if (typeof (Storage) !== "undefined") {
+                // IE 8+ or other browser 
+                strFoundBrowserVersion = "8";
+                blnOldVersion = false;
+            }
+            if (fCheckForSVG()) { //IE9+ or other browser
+                strFoundBrowserVersion = "9";
+                blnOldVersion = false;
+            }
+            if ('draggable' in document.createElement('span')) {  //IE 10+ or other browser
+                strFoundBrowserVersion = "10";
+                blnOldVersion = false;
+            }
+            if (typeof (Worker) !== "undefined") {
+                //IE 10+ or other browser
+                strFoundBrowserVersion = "10";
+                blnOldVersion = false;
+            }
+            //keep as last if statement to properly detect IE 11+ or Edge browsers
+            if (window.msCrypto) { //if IE 11+ only
+                strFoundBrowserVersion = "11";
+                blnOldVersion = false;
+            }
+            else if (window.crypto) { //other browser
+                strFoundBrowserVersion = "0";
+                blnOldVersion = false;
+            } 
+            //alert("old:"+ blnOldVersion +" :Version: "+ strFoundBrowserVersion);
+            return blnOldVersion;
+        }
+
+        //jwt - to get browser info type and version
+        function fBrowserVersion_Old() {
+            var strTemp;
+            var arrData = new Array();
+            var arrDataCount;
+            var strFoundBrowserVersion;
+            var strVersion;
+            var strAllBrowserData = navigator.userAgent;
+            var blnIE7 = false;
+            strVersion = navigator.appVersion;
+            gstrBrowserType = navigator.appName;
+            if (strAllBrowserData.indexOf("MSIE") != -1) {
+                // Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; GTB6.3; .NET CLR 2.0.50727; InfoPath.1; .NET CLR 1.1.4322)
+                arrData = strAllBrowserData.split(' ');
+                arrDataCount = arrData.length;
+                strTemp = arrData[3];  //4th array set
+                strFoundBrowserVersion = strTemp;
+            }
+            if (parseInt(strFoundBrowserVersion) <= 7) { blnIE7 = true; }
+            // //navigator.userAgent or navigator.appName  // 'bad command'=navigator.vendor
+            return blnIE7;
+        }
+
+
+        //----------------------------------
+        //all new jwt code above
+        //----------------------------------
+
+
+        
+
+	//loads the JSON data into the Div objects
+	function fLoadDataSwitch() {
+	    //alert("com:" + gstrCommand);
+	    switch (jsonTracker) {
+	        case "LoadRand":
+	            fDisplayResponse();
+	            break;
+	        default:
+	            //code to be executed if n is different from case 1
+	    }
+	}
+
+
+	function fDisplayResponse() {
+	    var strValueFound = "";
+	    var objNewData = null;
+        objNewData = document.getElementById('divNumberContent');
+	    strValueFound = jsonObj.RandInfo[0].list;
+        gstrRandList = strValueFound;
+        objNewData.innerHTML = "Rand List Finished Loading ...";
+        objNewData = null;
+        //Below Testing only:  
+        objNewData = document.getElementById('divTesting');
+        objNewData.innerHTML = strValueFound;
+        objNewData = null;
+        //
+	    //{"ScormInfo":[{"status":"scored","scored":"True","userPts":"False"}]}
+	    //objNewData.innerHTML = "web service is:" + strValueFound; //testing only
+	    //alert("AJAX response receieved..."+ strValueFound); //testing only
+	}
+
+
+	
+
+//----------------------------------
+    //all new jwt code below 
+    //----------------------------------
+    
+function fGenerateRnd(){
+  //var d = new Date();
+  //var n = d.getSeconds();
+  //n = n + Math.floor((Math.random() * 6) + 1) ; // 1 thru 6
+  n = Math.floor((Math.random() * 6) + 1) ; // 1 thru 6
+  //alert("seconds: "+ d.getSeconds() +" :1-6: "+ n); //testing only
+  return n;
+}
+
+    
+function fGetNumList(){
+    var intNumFound = 0;
+    var intLen = 0;
+    //
+    intNumFound = parseInt(gstrRandList.charAt(gintNumPosition));
+    intLen = gstrRandList.length - 1;
+    gintNumPosition = gintNumPosition + 1;
+    if (gintNumPosition > intLen) { gintNumPosition = 0; }
+    //alert("List Num: "+ intNumFound); //testing only
+    return intNumFound;
+}
+
+    
+
+
+
+function fCreateRndNum(){
+    var intResult = 0;
+    var intResult2 = 0;
+    var strOutput = "";
+    var objNewData = null;
+    objNewData = document.getElementById('divNumberContent');
+    //
+    intResult = fGenerateRnd();
+    intResult = intResult + fGetNumList();
+    strOutput = "Finding Num: "+ intResult;
+    //
+    objNewData.innerHTML = strOutput;  
+    objNewData = null;
+    return intResult;
+}
+    
+
+function sLoadRandList(){
+    jsonTracker = "LoadRand"
+    fLoadData();
+    
+}
+    
+    
+function fMainJWT(){
+    var intResult = 0;
+    var objNewData = null;
+    //
+    objNewData = document.getElementById('divNumberContent');
+    objNewData.innerHTML = "Generating ...";
+    //
+    var e = document.frmOptions.optAmt; //document.getElementById("SelectedContacts");
+	//gintNumGened = parseInt(e.options[e.selectedIndex].value);
+    //alert("Number: "+ gintNumGened);
+    //
+    fBrowserVersion();
+    objNewData = null;
+    setTimeout('fCreateRndNum()',500);  
+}
+
+    
+setTimeout('sLoadRandList()',500); //300
+
+//------------ JWT Code ---------------------
+</script>
+	</head>
+	
+	<body> <br><br><br>
+			<div id = "divNumberContent">
+				<noscript>
+					This course requires JavaScript to be enabled in your browser. 
+					Please enable JavaScript, then relaunch the course.
+				</noscript>
+			</div>
+            <button type="button" onclick="fMainJWT();">Gen Number</button> <br><br>
+        
+        <form id="frmOptions" name="frmOptions">
+            <SELECT Name='optAmt' >
+            <OPTION value='1' selected>One Num</OPTION>
+            <OPTION value='2' >Two Num</OPTION>
+            </SELECT> 
+        </form>
+        
+        <div id = "divTesting">
+				
+			</div>
+	</body>
+
+</html>
+
+
